@@ -1,1 +1,18 @@
+# File: retail-banking-app/Containerfile
+# Points to your Virtual Artifactory repo (Simulated locally via environmental tags)
+FROM artifactory.fsi.internal/os-as-code-virtual/soe/rhel9-bootc:latest
 
+ENV DEPLOY_DIR=/var/opt/banking-service
+RUN mkdir -p $DEPLOY_DIR /etc/greenboot/check/required.d/
+
+# Inject application code
+COPY app.jar $DEPLOY_DIR/server.jar
+
+# Inject the Greenboot Watchdog Script to catch post-boot failures
+COPY scripts/01_app_health.sh /etc/greenboot/check/required.d/01_app_health.sh
+RUN chmod +x /etc/greenboot/check/required.d/01_app_health.sh
+
+EXPOSE 8080
+
+LABEL io.fsi.app.name="Retail-Banking-API" \
+      io.fsi.app.version="1.0.0"
