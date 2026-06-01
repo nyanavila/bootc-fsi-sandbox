@@ -1,12 +1,12 @@
 # File: infrastructure-soe/Containerfile
-FROM registry.access.redhat.com/ubi9/ubi:latest
+# Change the FROM line from ubi to the official RHEL 9 bootc base
+FROM registry.access.redhat.com/rhel9/rhel-bootc:latest
 
-# Install core kernel, bootc, systemd, and observability engines
-RUN dnf -y install bootc kernel grub2 systemd NetworkManager curl && \
+# Run your system utility installations cleanly now
+RUN dnf -y install NetworkManager curl && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
-# Establish tracking variables for Artifactory Promotion Contracts
 LABEL io.fsi.soe.version="2.6.0" \
       io.fsi.soe.type="Base-SOE" \
       io.fsi.layer.origin="Patching-Team"
