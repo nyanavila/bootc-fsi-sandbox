@@ -1,1 +1,42 @@
+# File: .github/workflows/dacma-pipeline.yml
+name: "FSI Container-to-Disk Supply Chain Factory"
 
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  ARTIFACTORY_REGISTRY: "artifactory.fsi.internal"
+  VIRTUAL_REPO: "os-as-code-virtual"
+
+jobs:
+  build_factory:
+    name: "Compile and Test Immutable Stack"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Codebase Extraction Handshake
+        uses: actions/checkout@v4
+
+      - name: Simulate Mock Binary Artifact Compilation
+        run: |
+          echo "SIMULATED JAVA BINARY EXECUTION PLATFORM" > retail-banking-app/app.jar
+
+      - name: Validate Application Containerfile Architecture Contract
+        run: |
+          # Lint checking to ensure developers do not inject unauthorized DNF commands
+          if grep -q "dnf " retail-banking-app/Containerfile; then
+            echo "CRITICAL COMPLIANCE VIOLATION: Downstream apps cannot use native dnf tools!"
+            exit 1
+          fi
+          echo "Linter Pass: Containerfile conforms to governance contract."
+
+      - name: Local Emulation Build (Dry-Run Verification)
+        run: |
+          # Building base layer locally to test syntactic correctness
+          docker build -t soe-base:local ./infrastructure-soe
+          
+          # Patching the base layer configuration into the application docker build context
+          sed -i 's|artifactory.fsi.internal/os-as-code-virtual/soe/rhel9-bootc:latest|soe-base:local|g' retail-banking-app/Containerfile
+          docker build -t derived-app:local ./retail-banking-app
+          
+          echo "Pipeline verified. Artifact is structurally stable and ready for Artifactory Promotion."
